@@ -1,0 +1,1 @@
+Basic implementation of an MCP server of a Fulltext Document store

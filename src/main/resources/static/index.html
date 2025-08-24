@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document CRUD App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+        }
+        .form-control:focus, .btn:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .message-box {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1050;
+        }
+        .table-row-clickable {
+            cursor: pointer;
+        }
+        .scrollable-list {
+            max-height: 24rem; /* Equivalent to Tailwind's max-h-96 */
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="p-4">
+<div class="container">
+    <h1 class="text-center text-primary my-4">Document Management</h1>
+
+    <!-- Notification Area -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Add/Update Section -->
+    <div class="card shadow-sm p-4 mb-4">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-3">Add / Upsert Document</h2>
+            <form id="document-form" class="g-3">
+                <div class="mb-3">
+                    <label for="docId" class="form-label">Document ID (for Upsert)</label>
+                    <input type="text" id="docId" name="docId" placeholder="Leave empty to add new" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="docType" class="form-label">Document Type</label>
+                    <input type="text" id="docType" name="docType" placeholder="e.g., Article, Guide" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" id="title" name="title" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <input type="text" id="category" name="category" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">Content</label>
+                    <textarea id="content" name="content" rows="4" class="form-control" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <input type="text" id="notes" name="notes" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="tags" class="form-label">Tags (comma-separated)</label>
+                    <input type="text" id="tags" name="tags" placeholder="e.g., spring,java,api" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="relatedTo" class="form-label">Related To (comma-separated)</label>
+                    <input type="text" id="relatedTo" name="relatedTo" placeholder="e.g., doc1,doc2" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add / Upsert Document</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    <div class="card shadow-sm p-4 mb-4">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-3">Search Documents</h2>
+            <div class="d-flex mb-3">
+                <input type="text" id="search-query" placeholder="Enter Lucene query, e.g., category:Programming AND title:guide" class="form-control me-2">
+                <button id="search-btn" class="btn btn-success">Search</button>
+            </div>
+            <div id="search-results" class="scrollable-list"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Get and Delete Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm p-4">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-3">Get / Delete Document</h2>
+                    <div class="d-flex mb-3">
+                        <input type="text" id="docId-input" placeholder="Enter Document ID" class="form-control me-2">
+                        <button id="get-btn" class="btn btn-info me-2 text-white">Get</button>
+                        <button id="delete-btn" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">Delete</button>
+                    </div>
+                    <div id="get-result" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Add Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm p-4">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-3">Bulk Add Documents</h2>
+                    <textarea id="bulk-json" rows="8" placeholder='[{"docType":"type1", "title":"title1", ...}, {"docType":"type2", "title":"title2", ...}]' class="form-control mb-3"></textarea>
+                    <button id="bulk-add-btn" class="btn btn-primary w-100">Add Documents in Bulk</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the document with ID: <strong id="modal-doc-id"></strong>? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete Document</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script>
+    const API_BASE_URL = '/api/documents';
+
+    const form = document.getElementById('document-form');
+    const docIdInput = document.getElementById('docId');
+    const titleInput = document.getElementById('title');
+    const categoryInput = document.getElementById('category');
+    const docTypeInput = document.getElementById('docType');
+    const contentInput = document.getElementById('content');
+    const notesInput = document.getElementById('notes');
+    const tagsInput = document.getElementById('tags');
+    const relatedToInput = document.getElementById('relatedTo');
+    const searchInput = document.getElementById('search-query');
+    const searchBtn = document.getElementById('search-btn');
+    const searchResultsDiv = document.getElementById('search-results');
+    const getByIdInput = document.getElementById('docId-input');
+    const getBtn = document.getElementById('get-btn');
+    const deleteBtn = document.getElementById('delete-btn');
+    const getResultDiv = document.getElementById('get-result');
+    const bulkAddBtn = document.getElementById('bulk-add-btn');
+    const bulkJsonInput = document.getElementById('bulk-json');
+    const messageBox = document.getElementById('message-box');
+
+    // Modal elements
+    const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+    const modalDocIdSpan = document.getElementById('modal-doc-id');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
+    // Store the last search results for easy lookup
+    let lastSearchResults = [];
+
+    /**
+     * Displays a temporary, dismissible notification message.
+     * @param {string} message The message to display.
+     * @param {string} type The type of message ('success', 'error', 'info').
+     */
+    const showMessage = (message, type) => {
+        const el = document.createElement('div');
+        el.className = `alert alert-${type === 'success' ? 'success' : (type === 'error' ? 'danger' : 'info')} alert-dismissible fade show`;
+        el.setAttribute('role', 'alert');
+        el.innerHTML = `${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        messageBox.appendChild(el);
+
+        setTimeout(() => {
+            el.remove();
+        }, 5000);
+    };
+
+    /**
+     * Fills the add/upsert form with the data from a document object.
+     * @param {Object} document The document object to use for populating the form.
+     */
+    const populateForm = (document) => {
+        docIdInput.value = document.id || '';
+        docTypeInput.value = document.docType || '';
+        titleInput.value = document.title || '';
+        categoryInput.value = document.category || '';
+        contentInput.value = document.content || '';
+        notesInput.value = document.notes || '';
+        tagsInput.value = (document.tags || []).join(', ');
+        relatedToInput.value = (document.relatedTo || []).join(', ');
+    };
+
+    /**
+     * Renders a list of documents in a clean table format.
+     * @param {Array<Object>} documents The array of document objects.
+     * @param {HTMLElement} container The DOM element to render the table into.
+     */
+    const renderDocuments = (documents, container) => {
+        container.innerHTML = '';
+        lastSearchResults = documents;
+
+        if (documents.length === 0) {
+            container.innerHTML = '<p class="text-center text-secondary">No documents found.</p>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'table table-striped table-hover rounded shadow-sm';
+        table.innerHTML = `
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">DocType</th>
+                        <th scope="col">Tags</th>
+                    </tr>
+                </thead>
+                <tbody class="table-row-clickable"></tbody>
+            `;
+        const tbody = table.querySelector('tbody');
+
+        documents.forEach((doc, index) => {
+            const row = document.createElement('tr');
+            row.dataset.docIndex = index;
+            row.innerHTML = `
+                    <td>${doc.id || 'N/A'}</td>
+                    <td>${doc.title || 'N/A'}</td>
+                    <td>${doc.category || 'N/A'}</td>
+                    <td>${doc.docType || 'N/A'}</td>
+                    <td>${(doc.tags || []).join(', ')}</td>
+                `;
+            tbody.appendChild(row);
+        });
+
+        tbody.addEventListener('click', (event) => {
+            const row = event.target.closest('tr');
+            if (row && row.dataset.docIndex) {
+                const doc = lastSearchResults[row.dataset.docIndex];
+                if (doc) {
+                    populateForm(doc);
+                    showMessage('Document loaded into form!', 'info');
+                }
+            }
+        });
+
+        container.appendChild(table);
+    };
+
+    // Event Listeners
+
+    // Add or Upsert Document
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const docId = docIdInput.value.trim();
+        const document = {
+            id: docId,
+            docType: docTypeInput.value,
+            title: titleInput.value,
+            category: categoryInput.value,
+            content: contentInput.value,
+            notes: notesInput.value,
+            tags: tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+            relatedTo: relatedToInput.value.split(',').map(rel => rel.trim()).filter(rel => rel.length > 0)
+        };
+
+        const url = docId ? `${API_BASE_URL}/${docId}` : `${API_BASE_URL}/add`;
+        const method = docId ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(document)
+            });
+
+            if (response.ok) {
+                const message = await response.text();
+                showMessage(message, 'success');
+                form.reset();
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
+        } catch (error) {
+            showMessage(`Failed to ${docId ? 'upsert' : 'add'} document: ${error.message}`, 'error');
+        }
+    });
+
+    // Search Documents
+    searchBtn.addEventListener('click', async () => {
+        const query = searchInput.value;
+        if (!query) {
+            showMessage('Please enter a search query.', 'info');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+            if (!response.ok) {
+                throw new Error('Search failed.');
+            }
+            const results = await response.json();
+            renderDocuments(results, searchResultsDiv);
+        } catch (error) {
+            showMessage(`Error searching: ${error.message}`, 'error');
+            searchResultsDiv.innerHTML = '';
+        }
+    });
+
+    // Get Document by ID
+    getBtn.addEventListener('click', async () => {
+        const docId = getByIdInput.value.trim();
+        if (!docId) {
+            showMessage('Please enter a Document ID.', 'info');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${docId}`);
+            if (response.status === 404) {
+                showMessage('Document not found.', 'info');
+                getResultDiv.innerHTML = '';
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Failed to get document.');
+            }
+            const document = await response.json();
+            // Render the document in a human-readable format
+            getResultDiv.innerHTML = `
+                    <div class="card p-3 bg-light">
+                        <p><strong>ID:</strong> ${document.id}</p>
+                        <p><strong>Type:</strong> ${document.docType}</p>
+                        <p><strong>Title:</strong> ${document.title}</p>
+                        <p><strong>Category:</strong> ${document.category}</p>
+                        <p><strong>Notes:</strong> ${document.notes || 'N/A'}</p>
+                        <p><strong>Tags:</strong> ${(document.tags || []).join(', ')}</p>
+                        <p><strong>Related To:</strong> ${(document.relatedTo || []).join(', ')}</p>
+                        <p><strong>Content:</strong></p>
+                        <pre class="bg-white p-2 rounded mt-2 overflow-auto text-sm">${document.content || ''}</pre>
+                    </div>
+                `;
+        } catch (error) {
+            showMessage(`Error getting document: ${error.message}`, 'error');
+            getResultDiv.innerHTML = '';
+        }
+    });
+
+    // Trigger modal with the correct ID
+    deleteBtn.addEventListener('click', () => {
+        const docId = getByIdInput.value.trim();
+        if (!docId) {
+            showMessage('Please enter a Document ID to delete.', 'info');
+            // Prevent the modal from showing
+            event.preventDefault();
+            return;
+        }
+        modalDocIdSpan.textContent = docId;
+    });
+
+    // Handle delete on modal confirmation
+    confirmDeleteBtn.addEventListener('click', async () => {
+        const docId = getByIdInput.value.trim();
+
+        if (!docId) {
+            showMessage('Something went wrong. Please refresh the page.', 'error');
+            deleteConfirmModal.hide();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${docId}`, { method: 'DELETE' });
+            if (response.status === 404) {
+                showMessage('Document not found.', 'info');
+                return;
+            }
+            if (!response.ok) {
+                throw new Error('Failed to delete document.');
+            }
+            showMessage(`Document with ID ${docId} deleted successfully.`, 'success');
+            getByIdInput.value = '';
+            getResultDiv.innerHTML = '';
+        } catch (error) {
+            showMessage(`Error deleting document: ${error.message}`, 'error');
+        } finally {
+            deleteConfirmModal.hide();
+        }
+    });
+
+    // Bulk Add Documents
+    bulkAddBtn.addEventListener('click', async () => {
+        const jsonText = bulkJsonInput.value.trim();
+        if (!jsonText) {
+            showMessage('Please enter JSON data for bulk upload.', 'info');
+            return;
+        }
+
+        try {
+            const documents = JSON.parse(jsonText);
+            if (!Array.isArray(documents)) {
+                throw new Error('JSON must be an array of documents.');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/add-bulk`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(documents)
+            });
+
+            if (response.ok) {
+                const message = await response.text();
+                showMessage(message, 'success');
+                bulkJsonInput.value = '';
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText);
+            }
+        } catch (error) {
+            showMessage(`Failed to bulk add documents: ${error.message}`, 'error');
+        }
+    });
+</script>
+</body>
+</html>

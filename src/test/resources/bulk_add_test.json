@@ -1,0 +1,102 @@
+[
+  {
+    "id": "e3ad7a2b-1c5b-4b06-9f42-7a0f7cb6b101",
+    "docType": "Troubleshooting",
+    "title": "DB Connection Timeouts Under Load",
+    "category": "database",
+    "content": "Error Indicators:\n- 500 errors during peak traffic.\n- Stack trace excerpt:\n  java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 30000ms\n  at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:*)\n  at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:*)\n\nRoot Cause:\nConnection pool exhaustion from long-running queries and too-small maxPoolSize during spikes.\n\nSolution:\n1. Identify slow queries via APM/slow-query logs; add missing indexes.\n2. Increase HikariCP maxPoolSize (e.g., 10 → 30) and verify connectionTimeout.\n3. Cap per-request concurrency or enable back-pressure.\n4. Monitor DB CPU/IO and pool metrics after deploy.",
+    "notes": "Ensure DB has capacity before raising pool size; otherwise timeouts shift to the database.",
+    "tags": ["db","hikaricp","timeout","pool","performance"],
+    "relatedTo": ["5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c05","2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a07"]
+  },
+  {
+    "id": "7b1c2d3e-4f50-4e61-9a72-b2c3d4e5f602",
+    "docType": "Troubleshooting",
+    "title": "NullPointerException on Startup When Config Missing",
+    "category": "config",
+    "content": "Error Indicators:\n- Service fails to start.\n- Stack trace excerpt:\n  java.lang.NullPointerException: Cannot invoke \"Config.getUrl()\" because \"config\" is null\n  at com.example.app.InitService.load(InitService.java:*)\n\nRoot Cause:\nRequired configuration (e.g., externalService.url) is absent or not bound due to missing env var/secret.\n\nSolution:\n1. Check active Spring profiles and environment variable bindings.\n2. Validate application.yml/application.properties and secret mounts.\n3. Add @ConfigurationProperties validation or fail-fast checks.\n4. Provide sane defaults or mark fields @NotNull and document required vars.",
+    "notes": "Add health check that verifies critical config before serving traffic.",
+    "tags": ["npe","startup","spring","configuration","secrets"],
+    "relatedTo": []
+  },
+  {
+    "id": "0aa3b4c5-d6e7-4890-9a01-2b3c4d5e6f03",
+    "docType": "Troubleshooting",
+    "title": "429 Rate Limit Errors from Third-Party API",
+    "category": "integration",
+    "content": "Error Indicators:\n- HTTP 429 Too Many Requests from partner API.\n- Response headers: X-RateLimit-Remaining: 0; Retry-After: 60\n- Logs show bursts of parallel calls.\n\nRoot Cause:\nClient exceeds provider rate limits due to lack of throttling/batching/retry with backoff.\n\nSolution:\n1. Implement client-side rate limiter (token bucket/leaky bucket) using provider limits.\n2. Honor Retry-After; add exponential backoff with jitter.\n3. Batch and cache duplicate requests where possible.\n4. Monitor 429 frequency and adjust concurrency.",
+    "notes": "Coordinate limits with provider; some apply per-IP, per-key, or per-endpoint.",
+    "tags": ["429","ratelimit","third-party","retry","backoff"],
+    "relatedTo": ["4b5c6d7e-8f90-4a12-9b23-c4d5e6f7a808"]
+  },
+  {
+    "id": "9f0e1d2c-3b4a-45c6-8d7e-9e0f1a2b3c04",
+    "docType": "Troubleshooting",
+    "title": "OutOfMemoryError During Large File Uploads",
+    "category": "memory",
+    "content": "Error Indicators:\n- java.lang.OutOfMemoryError: Java heap space / GC overhead limit exceeded\n- High heap usage; frequent full GCs.\n\nRoot Cause:\nEntire uploads buffered in memory (e.g., MultipartResolver/Netty default), or aggregation of large byte[] in serialization.\n\nSolution:\n1. Stream uploads to disk/object storage; disable in-memory aggregation.\n2. Set max file size limits and reject oversize early.\n3. Use backpressure and chunked processing.\n4. Right-size JVM heap and tune GC; confirm no leaks via heap dump.",
+    "notes": "Verify libraries support streaming (e.g., Servlet 3.1 async, reactive streams).",
+    "tags": ["oom","uploads","streaming","memory","gc"],
+    "relatedTo": ["6c7d8e9f-0a1b-4c2d-9e3f-4a5b6c7d8e09"]
+  },
+  {
+    "id": "5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c05",
+    "docType": "Troubleshooting",
+    "title": "Scheduler Deadlock When Jobs Overlap",
+    "category": "concurrency",
+    "content": "Error Indicators:\n- Requests hang; thread dumps show BLOCKED on job locks.\n- Example snippet:\n  at java.util.concurrent.locks.ReentrantLock.lock(ReentrantLock.java:*)\n  - waiting to lock <0x*> (a java.util.concurrent.locks.ReentrantLock)\n  at com.example.jobs.ReportJob.run(ReportJob.java:*)\n\nRoot Cause:\nNon-reentrant locks across jobs or overlapping schedules accessing shared resources in conflicting order.\n\nSolution:\n1. Make jobs idempotent and serialize access with a single coordinator (DB row lock/Redis lock).\n2. Use misfire policies; prevent overlap (Quartz: DisallowConcurrentExecution).\n3. Review lock acquisition order; avoid nested conflicting locks.\n4. Add timeouts and circuit breakers around long tasks.",
+    "notes": "Add metrics on job runtime and queue depth; alert on overlaps.",
+    "tags": ["deadlock","scheduler","locks","quartz","concurrency"],
+    "relatedTo": ["e3ad7a2b-1c5b-4b06-9f42-7a0f7cb6b101"]
+  },
+  {
+    "id": "c1d2e3f4-5a6b-47c8-9d0e-1f2a3b4c5d06",
+    "docType": "Troubleshooting",
+    "title": "SSLHandshakeException / PKIX Path Building Failed",
+    "category": "security",
+    "content": "Error Indicators:\n- javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n- Occurs on outbound HTTPS calls.\n\nRoot Cause:\nMissing/incorrect CA trust chain (intercepting proxy, private CA, or stale cacerts).\n\nSolution:\n1. Verify server cert chain with openssl s_client; obtain required intermediates/roots.\n2. Import CA/intermediate into truststore used by the JVM/container.\n3. Pin hosts where appropriate; avoid disabling hostname verification.\n4. Re-test with curl/java client; deploy updated trust bundle.",
+    "notes": "Avoid trusting leaf certs; prefer organization CA bundles.",
+    "tags": ["ssl","tls","pkix","truststore","certificates"],
+    "relatedTo": ["8d9e0f1a-2b3c-4d5e-9f60-1a2b3c4d5e10"]
+  },
+  {
+    "id": "2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a07",
+    "docType": "Troubleshooting",
+    "title": "IOException: No Space Left on Device (ENOSPC)",
+    "category": "storage",
+    "content": "Error Indicators:\n- java.io.IOException: No space left on device\n- Logs fail to write; temp directories fill quickly.\n\nRoot Cause:\nLog rotation misconfigured or runaway temp files; single volume shared by app, logs, and uploads.\n\nSolution:\n1. Free disk space; rotate/compress logs; purge temp directories.\n2. Move logs/uploads to separate volume; set quotas.\n3. Add retention policies and alerts on disk usage.\n4. Consider log shipping (e.g., to ELK/CloudWatch) to reduce local writes.",
+    "notes": "Check inode exhaustion too (df -i).",
+    "tags": ["disk","enospc","logs","retention","storage"],
+    "relatedTo": ["e3ad7a2b-1c5b-4b06-9f42-7a0f7cb6b101"]
+  },
+  {
+    "id": "4b5c6d7e-8f90-4a12-9b23-c4d5e6f7a808",
+    "docType": "Troubleshooting",
+    "title": "Cache Stampede Causing Backend 503s",
+    "category": "cache",
+    "content": "Error Indicators:\n- Burst of 503/timeout errors from backend.\n- Cache miss storm on popular keys; spikes in CPU/DB load.\n\nRoot Cause:\nMany clients recompute the same expensive item on expiry; no request coalescing.\n\nSolution:\n1. Implement single-flight/mutex per key to deduplicate work.\n2. Use stale-while-revalidate or probabilistic early refresh.\n3. Add jitter to TTLs; cache negative/empty results briefly.\n4. Monitor key-level hit rates and recomputation time.",
+    "notes": "Coordinate with rate-limiting to protect third parties.",
+    "tags": ["cache","stampede","ttl","stale-while-revalidate","performance"],
+    "relatedTo": ["0aa3b4c5-d6e7-4890-9a01-2b3c4d5e6f03"]
+  },
+  {
+    "id": "6c7d8e9f-0a1b-4c2d-9e3f-4a5b6c7d8e09",
+    "docType": "Troubleshooting",
+    "title": "Jackson MismatchedInputException During Deserialization",
+    "category": "serialization",
+    "content": "Error Indicators:\n- com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize instance of `java.util.List` out of START_OBJECT token\n- 400/500 responses on JSON endpoints.\n\nRoot Cause:\nPayload shape does not match model (e.g., object vs array), missing default constructor, or wrong @JsonProperty.\n\nSolution:\n1. Align DTOs with payload: correct collection vs object types.\n2. Add @JsonCreator / @JsonProperty mappings; enable FAIL_ON_UNKNOWN_PROPERTIES=false if appropriate.\n3. Validate request with JSON schema; return clear error messages.\n4. Add integration tests with real-world samples.",
+    "notes": "Log sanitized payload samples for debugging; avoid PII.",
+    "tags": ["jackson","json","deserialization","dto","api"],
+    "relatedTo": ["9f0e1d2c-3b4a-45c6-8d7e-9e0f1a2b3c04"]
+  },
+  {
+    "id": "8d9e0f1a-2b3c-4d5e-9f60-1a2b3c4d5e10",
+    "docType": "Troubleshooting",
+    "title": "WebSocket Disconnects Behind Reverse Proxy",
+    "category": "network",
+    "content": "Error Indicators:\n- Clients drop with code 1006/1011; reconnect loops.\n- Proxy logs show idle timeout or protocol upgrade issues.\n\nRoot Cause:\nReverse proxy not configured for WebSocket upgrade/keep-alive; aggressive idle timeouts or buffer limits.\n\nSolution:\n1. Enable and verify Upgrade: websocket headers; allow HTTP/1.1 keep-alive.\n2. Increase proxy idle timeout; send ping/pong at interval < timeout.\n3. Raise proxy buffer limits for large messages; enable sticky sessions if required.\n4. Validate with wscat/curl; monitor close codes.",
+    "notes": "TLS termination + HTTP/2 cleartext can break some clients; prefer HTTP/1.1 for WS.",
+    "tags": ["websocket","reverse-proxy","timeouts","keepalive","sticky-sessions"],
+    "relatedTo": ["c1d2e3f4-5a6b-47c8-9d0e-1f2a3b4c5d06"]
+  }
+]

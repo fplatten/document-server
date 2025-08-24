@@ -1,0 +1,15 @@
+# Lines starting with # are comments.
+# EQUIVALENT SET (bi-directional): comma-separated terms are treated as the same
+npe, null pointer, null pointer exception, nullpointerexception, NullPointerException
+ssl, tls, pkix, certificate error, truststore
+ratelimit, rate limit, throttling, Too Many Requests, 429
+enospc, no space left on device, disk full, out of space
+deserialize, deserialization, MismatchedInputException, jackson error
+windsonic, gill windsonic, wind sonic
+cr1000x, campbell cr1000x, data logger, datalogger
+anemo, anemometer
+pyrano, pyranometer
+baro, barometer
+firmware update, firmware upgrade
+calibrate, calibration
+install, installation, set up, setup

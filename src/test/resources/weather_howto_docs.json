@@ -1,0 +1,182 @@
+[
+  {
+    "id": "89665867-5525-4c66-9271-9f91369f9fed",
+    "docType": "HowTo",
+    "title": "Check & Calibrate Anemometer (Gill WindSonic)",
+    "category": "anemometer",
+    "content": "Overview:\nVerify the WindSonic anemometer is reading accurately and apply calibration if required.\n\nPrerequisites:\n- Calm conditions or wind generator\n- Multimeter, laptop with station access, alignment compass\n- Access to data logger (CR1000X) program\n\nSteps:\n1) Isolate power to the sensor at the junction box.\n2) Inspect and clean transducer faces; remove debris or ice.\n3) Check mounting: boom level, arrow aligned to true north (apply site declination).\n4) Restore power; confirm 12V present and serial output in logger port status.\n5) Baseline test: in no-wind, verify speed ≈ 0 m/s and direction stable.\n6) Two-point check: expose to ~2 m/s and ~10 m/s airflow; log values for 60 s each.\n7) If offset > ±0.2 m/s or direction > ±3°, update coefficients in the logger program.\n8) Save and deploy program; annotate change log.\n\nVerification:\n- Speed within ±0.2 m/s of reference and direction within ±3° for both points.\n\nSafety:\n- Use fall protection on towers. De-energize lines before handling wiring.\n",
+    "notes": "If erratic after rain, leave powered for 10 mins—moisture can recover out.",
+    "tags": [
+      "howto",
+      "anemometer",
+      "wind",
+      "windsonic",
+      "calibration",
+      "maintenance"
+    ],
+    "relatedTo": [
+      "762d61f8-04c4-4eb2-a82f-47acb4c54eef"
+    ]
+  },
+  {
+    "id": "a0f44781-c325-4d2e-927a-640e4389dd1b",
+    "docType": "HowTo",
+    "title": "Two-Point Barometer Calibration",
+    "category": "barometer",
+    "content": "Overview:\nCalibrate the barometric pressure sensor at low and high setpoints.\n\nPrerequisites:\n- Reference barometer (traceable)\n- Stable ambient temperature (25±2 °C)\n- Access to logger config\n\nSteps:\n1) Allow sensor to thermally stabilize for 30 minutes.\n2) Apply low setpoint (≈950 hPa) using the calibration chamber; record reading.\n3) Apply high setpoint (≈1030 hPa); record reading.\n4) Compute slope/offset; enter offsets in the logger or sensor EEPROM.\n5) Save config and tag with calibration date.\n\nVerification:\n- Error ≤ ±0.3 hPa over range.\n\nSafety:\n- Handle pressure fittings carefully to avoid leaks.\n",
+    "notes": "Recalibrate after any firmware change affecting sensor linearization.",
+    "tags": [
+      "howto",
+      "barometer",
+      "pressure",
+      "calibration",
+      "two-point"
+    ],
+    "relatedTo": [
+      "762d61f8-04c4-4eb2-a82f-47acb4c54eef"
+    ]
+  },
+  {
+    "id": "d11048c5-675c-4ab1-967f-a8439aba7fc5",
+    "docType": "HowTo",
+    "title": "Clean & Calibrate Tipping-Bucket Rain Gauge",
+    "category": "rain-gauge",
+    "content": "Overview:\nPerform monthly cleaning and flow calibration on the tipping-bucket gauge.\n\nPrerequisites:\n- Deionized water, graduated cylinder (200 mL), level, soft brush\n- Access to logger pulse count\n\nSteps:\n1) Remove funnel and screen; brush out debris and insect nests.\n2) Check the base is level using bubble level; adjust feet.\n3) Drip exactly 200 mL over 20 minutes; observe tip counts.\n4) Adjust reed switch and bucket stop to achieve correct mm/tip.\n5) Refit funnel; verify no leaks.\n\nVerification:\n- Tip count within ±1 tip of expected for 200 mL.\n\nSafety:\n- Beware of slick surfaces after cleaning.\n",
+    "notes": "Record final mm/tip and ambient temperature during calibration.",
+    "tags": [
+      "howto",
+      "rain",
+      "tipping-bucket",
+      "maintenance",
+      "calibration"
+    ],
+    "relatedTo": []
+  },
+  {
+    "id": "e2fcc8e3-2967-495c-85e8-3dc608ab614d",
+    "docType": "HowTo",
+    "title": "Validate Pyranometer (CMP11) Irradiance",
+    "category": "pyranometer",
+    "content": "Overview:\nVerify irradiance readings and cleanliness of the pyranometer dome.\n\nPrerequisites:\n- Lint-free wipes, pure ethanol, soft brush\n- Access to reference station or model clear-sky curve\n\nSteps:\n1) Inspect cable and bubble level; re-level as needed.\n2) Dry brush dust; clean dome with ethanol and lint-free wipes.\n3) Compare 10-minute averaged W/m² to reference or clear-sky model.\n4) If deviation >5% under stable sky, check shading and wiring polarity.\n5) Document cleanliness class and any offsets applied.\n\nVerification:\n- Deviation ≤5% under clear conditions.\n\nSafety:\n- Do not use abrasive pads; they scratch the dome.\n",
+    "notes": "Perform weekly in dusty environments.",
+    "tags": [
+      "howto",
+      "solar",
+      "irradiance",
+      "pyranometer",
+      "cmp11",
+      "cleaning",
+      "validation"
+    ],
+    "relatedTo": []
+  },
+  {
+    "id": "b23bb816-de6d-4463-aa91-de47db82b943",
+    "docType": "HowTo",
+    "title": "Replace Thermo‑Hygrometer Sensor (SHT35)",
+    "category": "thermo-hygrometer",
+    "content": "Overview:\nReplace a drifting SHT35 temperature/humidity probe and apply offsets.\n\nPrerequisites:\n- Replacement SHT35, small screwdriver, antistatic precautions\n- Access to shelter (radiation shield)\n\nSteps:\n1) Power down the sensor channel at the logger.\n2) Remove shield cap; avoid touching the white filter element.\n3) Swap the SHT35 module; secure connector.\n4) Power up and allow 2-hour burn-in at ambient.\n5) Compare against reference RH/T; apply offset if RH drift >2% or T >0.3°C.\n6) Log serial number and offsets.\n\nVerification:\n- RH within ±2%, T within ±0.3°C vs reference.\n\nSafety:\n- Handle sensor by edges; oils skew humidity response.\n",
+    "notes": "Seal shield properly to avoid aspirator leaks.",
+    "tags": [
+      "howto",
+      "humidity",
+      "temperature",
+      "SHT35",
+      "replacement",
+      "maintenance"
+    ],
+    "relatedTo": []
+  },
+  {
+    "id": "762d61f8-04c4-4eb2-a82f-47acb4c54eef",
+    "docType": "HowTo",
+    "title": "Upgrade Data Logger Firmware (CR1000X)",
+    "category": "data-logger",
+    "content": "Overview:\nSafely upgrade CR1000X firmware and verify station program integrity.\n\nPrerequisites:\n- Latest CR1000X firmware file, USB/ethernet access\n- Backup of logger program and data\n\nSteps:\n1) Export current program and a data snapshot.\n2) Upload and apply the firmware via LoggerNet/DeviceConfig.\n3) Reboot logger; confirm COM ports and sensor addresses.\n4) Re-deploy the station program; monitor compile output.\n5) Validate critical sensors (wind, temp/RH, rain) produce values.\n\nVerification:\n- No compile errors; sensor scans nominal for 10 minutes.\n\nRollback:\n- Reflash prior firmware and restore backed-up program if validation fails.\n",
+    "notes": "Confirm time sync after upgrade; NTP may reset.",
+    "tags": [
+      "howto",
+      "cr1000x",
+      "firmware",
+      "datalogger",
+      "upgrade"
+    ],
+    "relatedTo": [
+      "89665867-5525-4c66-9271-9f91369f9fed",
+      "a0f44781-c325-4d2e-927a-640e4389dd1b"
+    ]
+  },
+  {
+    "id": "5838f7c6-a4bf-4003-9ea8-18216c03ad12",
+    "docType": "HowTo",
+    "title": "Restore LTE Connectivity (Cradlepoint)",
+    "category": "network",
+    "content": "Overview:\nDiagnose and restore WAN connectivity on the station LTE modem.\n\nPrerequisites:\n- Access to modem UI, SIM info, carrier support contact\n- Knowledge of APN and static IP requirements\n\nSteps:\n1) Check signal metrics (RSSI/RSRP/RSRQ/SINR); record values.\n2) Verify SIM status and data plan; re-seat SIM if not detected.\n3) Reboot modem; confirm IP assignment and APN profile.\n4) Test DNS and outbound reachability (ping traceroute).\n5) If RSRP < -110 dBm, re-aim antenna or move to backup carrier profile.\n6) If static IP site, validate NAT/port-forward rules.\n\nVerification:\n- Station heartbeats visible; latency within expected range.\n\nSafety:\n- Observe ESD when handling SIM/antenna connectors.\n",
+    "notes": "Escalate ISP ticket if PDP context fails repeatedly.",
+    "tags": [
+      "howto",
+      "network",
+      "lte",
+      "modem",
+      "cradlepoint",
+      "outage",
+      "connectivity"
+    ],
+    "relatedTo": [
+      "5534288c-e3e4-4f9f-bfe9-6d71327ec032"
+    ]
+  },
+  {
+    "id": "5534288c-e3e4-4f9f-bfe9-6d71327ec032",
+    "docType": "HowTo",
+    "title": "Replace 12V AGM Battery in Power System",
+    "category": "power",
+    "content": "Overview:\nReplace an aging AGM battery and validate charging performance.\n\nPrerequisites:\n- Correct AGM replacement, torque wrench, PPE (eye protection)\n- Multimeter and load tester\n\nSteps:\n1) Isolate solar charger; remove negative terminal first.\n2) Remove old battery; inspect for swelling/leaks.\n3) Install new battery; torque terminals to spec.\n4) Restore charger; verify float/absorb voltages.\n5) Run 10-minute load test; log voltage sag and recovery.\n\nVerification:\n- Resting voltage ≥12.7V; under load stays within spec.\n\nSafety:\n- Avoid shorting terminals; wear eye protection.\n",
+    "notes": "Record install date for lifecycle tracking (3 years typical).",
+    "tags": [
+      "howto",
+      "power",
+      "battery",
+      "AGM",
+      "maintenance",
+      "safety"
+    ],
+    "relatedTo": [
+      "5838f7c6-a4bf-4003-9ea8-18216c03ad12"
+    ]
+  },
+  {
+    "id": "bde8d0f7-5400-417e-ba71-4e0c6d8a4e5e",
+    "docType": "HowTo",
+    "title": "Install Lightning Sensor (Vaisala)",
+    "category": "lightning",
+    "content": "Overview:\nInstall and integrate the lightning detection sensor with the station logger.\n\nPrerequisites:\n- Mounting hardware, grounding kit, shielded cable\n- Logger input available and driver ready\n\nSteps:\n1) Mount sensor per vendor standoff and orientation guidelines.\n2) Bond to single-point ground; verify <5Ω to ground.\n3) Route shielded cable; avoid parallel runs with power lines.\n4) Wire to logger; configure pulse/count input channel.\n5) Generate test pulses or await storm to validate counts.\n\nVerification:\n- Pulse counts visible and debounced in logger.\n\nSafety:\n- Work only in safe weather; follow grounding best practices.\n",
+    "notes": "Keep away from tall metal structures to reduce false triggers.",
+    "tags": [
+      "howto",
+      "lightning",
+      "installation",
+      "grounding",
+      "sensor"
+    ],
+    "relatedTo": [
+      "762d61f8-04c4-4eb2-a82f-47acb4c54eef"
+    ]
+  },
+  {
+    "id": "3b6ade9e-a081-4c45-8019-714bd6c1b90f",
+    "docType": "HowTo",
+    "title": "Deploy Weather Application Release",
+    "category": "application",
+    "content": "Overview:\nDeploy a new application version with zero-downtime and post-deploy checks.\n\nPrerequisites:\n- Release artifact, DB migration plan, healthcheck URL\n- Rollback artifact available\n\nSteps:\n1) Announce change window; freeze config toggles.\n2) Run DB migrations in maintenance mode (if any).\n3) Deploy app to blue/green or rolling set; monitor health endpoint.\n4) Verify station ingest, API latencies, and dashboards.\n5) Gradually shift traffic; watch error rates and queues.\n6) Tag release and update runbook notes.\n\nVerification:\n- No elevated error rates; ingestion pipeline stable for 30 minutes.\n\nRollback:\n- Revert to prior artifact; restore DB backup if needed (if destructive migration).\n\nSafety:\n- Keep on-call informed; have comms open with field techs.\n",
+    "notes": "Attach release notes and ticket IDs to the deploy record.",
+    "tags": [
+      "howto",
+      "deployment",
+      "release",
+      "blue-green",
+      "observability"
+    ],
+    "relatedTo": []
+  }
+]
